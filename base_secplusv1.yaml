@@ -3,7 +3,7 @@
 external_components:
   - source:
       type: git
-      url: https://github.com/ratgdo/esphome-ratgdo
+      url: https://github.com/juanboro/esphome-ratgdo
     refresh: 1s
 
 preferences:
@@ -77,56 +77,6 @@ binary_sensor:
     ratgdo_id: ${id_prefix}
     name: "Button"
     entity_category: diagnostic
-  - platform: gpio
-    id: "${id_prefix}_dry_contact_open"
-    pin:
-      number: ${dry_contact_open_pin}  # D5 dry contact for opening door
-      inverted: true
-      mode:
-        input: true
-        pullup: true
-    name: "Dry contact open"
-    entity_category: diagnostic
-    filters:
-      - delayed_on_off: 500ms
-    on_press:
-      - if:
-          condition:
-            binary_sensor.is_off: ${id_prefix}_dry_contact_close
-          then:
-            - cover.open: ${id_prefix}_garage_door
-  - platform: gpio
-    id: "${id_prefix}_dry_contact_close"
-    pin:
-      number: ${dry_contact_close_pin}  # D6 dry contact for closing door
-      inverted: true
-      mode:
-        input: true
-        pullup: true
-    name: "Dry contact close"
-    entity_category: diagnostic
-    filters:
-      - delayed_on_off: 500ms
-    on_press:
-      - if:
-          condition:
-            binary_sensor.is_off: ${id_prefix}_dry_contact_open
-          then:
-            - cover.close: ${id_prefix}_garage_door
-  - platform: gpio
-    id: "${id_prefix}_dry_contact_light"
-    pin:
-      number: ${dry_contact_light_pin}  # D3 dry contact for triggering light (no discrete light commands, so toggle only)
-      inverted: true
-      mode:
-        input: true
-        pullup: true
-    name: "Dry contact light"
-    entity_category: diagnostic
-    filters:
-      - delayed_on_off: 500ms
-    on_press:
-      - light.toggle: ${id_prefix}_light
 
 number:
   - platform: ratgdo
@@ -213,3 +163,14 @@ button:
       then:
         lambda: !lambda |-
           id($id_prefix).door_toggle();
+
+# Example configuration entry
+sensor:
+  - platform: dht
+    pin: ${dht_pin}
+    temperature:
+      name: "Garage Temperature"
+    humidity:
+      name: "Garage Humidity"
+    update_interval: 60s
+    model: DHT22
