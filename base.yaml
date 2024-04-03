@@ -271,14 +271,3 @@ button:
         lambda: !lambda |-
           id($id_prefix).door_toggle();
 
-# Example configuration entry
-sensor:
-  - platform: dht
-    pin: ${dht_pin}
-    temperature:
-      name: "Garage Temperature"
-    humidity:
-      name: "Garage Humidity"
-    update_interval: 60s
-    model: DHT22
-    
