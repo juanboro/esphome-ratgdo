@@ -7,8 +7,10 @@ substitutions:
   input_obst_pin: D7
   status_door_pin: D0
   status_obstruction_pin: D8
+  dry_contact_open_pin: D4
+  dry_contact_close_pin: D6
+  dry_contact_light_pin: D3
   dht_pin: D5
-
 web_server:
 
 esphome:
@@ -24,7 +26,7 @@ esp8266:
   restore_from_flash: true
 
 dashboard_import:
-  package_import_url: github://juanboro/esphome-ratgdo/jonboard_esp8266_d1_mini_secplusv1.yaml@main
+  package_import_url: github://juanboro/esphome-ratgdo/jonboard_esp8266_d1_mini.yaml@main
 
 packages:
   remote_package:
@@ -73,5 +75,3 @@ wifi:
   #   subnet: 255.255.255.0
 
 logger:
-
-
