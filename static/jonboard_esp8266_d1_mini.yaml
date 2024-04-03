@@ -1,0 +1,77 @@
+---
+substitutions:
+  id_prefix: ratgdov25
+  friendly_name: "ratgdov2.5"
+  uart_tx_pin: D1
+  uart_rx_pin: D2
+  input_obst_pin: D7
+  status_door_pin: D0
+  status_obstruction_pin: D8
+  dht_pin: D5
+
+web_server:
+
+esphome:
+  name: ${id_prefix}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: true
+  project:
+    name: ratgdo.esphome
+    version: "2.5"
+
+esp8266:
+  board: d1_mini
+  restore_from_flash: true
+
+dashboard_import:
+  package_import_url: github://juanboro/esphome-ratgdo/jonboard_esp8266_d1_mini_secplusv1.yaml@main
+
+packages:
+  remote_package:
+    url: https://github.com/juanboro/esphome-ratgdo
+    files: [base.yaml]
+    refresh: 1s
+
+# Example configuration entry
+sensor:
+  - platform: dht
+    pin: ${dht_pin}
+    temperature:
+      filters:
+        - filter_out: nan
+      name: "Garage Temperature"
+    humidity:
+      filters:
+        - filter_out: nan
+      name: "Garage Humidity"
+      accuracy_decimals: 1
+    update_interval: 60s
+    model: DHT22
+
+# Sync time with Home Assistant.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+api:
+  id: api_server
+
+ota:
+
+improv_serial:
+
+wifi:
+  networks:
+    - ssid: knet-iot
+      password: !secret knet_password
+    - ssid: thepines
+      password: !secret thepines_password
+    
+  # manual_ip:
+  #   static_ip: 192.168.74.98
+  #   gateway: 192.168.74.1
+  #   subnet: 255.255.255.0
+
+logger:
+
+
