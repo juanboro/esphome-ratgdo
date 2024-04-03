@@ -29,7 +29,7 @@ dashboard_import:
 packages:
   remote_package:
     url: https://github.com/juanboro/esphome-ratgdo
-    files: [base_secplusv1.yaml]
+    files: [base.yaml]
     refresh: 1s
 
 # Example configuration entry
