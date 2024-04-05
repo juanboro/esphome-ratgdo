@@ -48,7 +48,7 @@ sensor:
       name: "Garage Humidity"
       accuracy_decimals: 1
     update_interval: 60s
-    model: DHT22
+    model: DHT22_TYPE2
 
 # Sync time with Home Assistant.
 time:
