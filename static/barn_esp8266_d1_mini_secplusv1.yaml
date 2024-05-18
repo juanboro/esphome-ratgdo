@@ -65,7 +65,7 @@ wifi:
     - ssid: knet-iot
       password: !secret knet_password
       manual_ip:
-        static_ip: 192.168.74.98
+        static_ip: 192.168.74.99
         gateway: 192.168.74.1
         subnet: 255.255.255.0
 
