@@ -2,8 +2,8 @@
 substitutions:
   id_prefix: ratgdov25
   friendly_name: "ratgdov2.5"
-  uart_tx_pin: D2
-  uart_rx_pin: D3
+  uart_tx_pin: D1
+  uart_rx_pin: D2
   input_obst_pin: D7
   status_door_pin: D0
   status_obstruction_pin: D8
@@ -64,14 +64,13 @@ wifi:
   networks:
     - ssid: knet-iot
       password: !secret knet_password
+      static_ip: 192.168.74.98
+      gateway: 192.168.74.1
+      subnet: 255.255.255.0
+
     - ssid: thepines-dx
       password: !secret thepines_password
     
-  # manual_ip:
-  #   static_ip: 192.168.74.98
-  #   gateway: 192.168.74.1
-  #   subnet: 255.255.255.0
-
 logger:
 
 
