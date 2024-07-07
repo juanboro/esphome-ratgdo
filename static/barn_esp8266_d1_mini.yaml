@@ -7,6 +7,9 @@ substitutions:
   input_obst_pin: D7
   status_door_pin: D0
   status_obstruction_pin: D8
+  dry_contact_open_pin: D4
+  dry_contact_close_pin: D6
+  dry_contact_light_pin: D3
   dht_pin: D5
 
 web_server:
