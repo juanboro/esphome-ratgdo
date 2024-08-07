@@ -66,9 +66,15 @@ wifi:
   networks:
     - ssid: knet-iot
       password: !secret knet_password
-    - ssid: thepines
-      password: !secret thepines_password
-    
+#    - ssid: thepines
+#      password: !secret thepines_password
+    - ssid: cottage_iot
+      password: !secret iot_password
+      manual_ip:
+        static_ip: 192.168.74.98
+        gateway: 192.168.74.1
+        subnet: 255.255.255.0
+   
   # manual_ip:
   #   static_ip: 192.168.74.98
   #   gateway: 192.168.74.1
