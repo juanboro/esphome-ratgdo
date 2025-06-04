@@ -1,10 +1,15 @@
 ---
-
 external_components:
   - source:
       type: git
       url: https://github.com/juanboro/esphome-ratgdo
+      ref: main
     refresh: 1s
+  # - source:
+  #     type: local
+  #     path: components
+
+safe_mode:
 
 preferences:
   flash_write_interval: 1min
@@ -45,6 +50,10 @@ api:
             id($id_prefix).clear_paired_devices(ratgdo::PairedDevice::ACCESSORY);
           }
 
+ota:
+  - platform: esphome
+    id: ratgdo_ota
+
 sensor:
   - platform: ratgdo
     id: ${id_prefix}_openings
@@ -73,7 +82,7 @@ switch:
     id: "${id_prefix}_status_door"
     internal: true
     pin:
-      number: ${status_door_pin}  # D0 output door status, HIGH for open, LOW for closed
+      number: ${status_door_pin}  # output door status, HIGH for open, LOW for closed
       mode:
         output: true
     name: "Status door"
@@ -82,7 +91,7 @@ switch:
     id: "${id_prefix}_status_obstruction"
     internal: true
     pin:
-      number: ${status_obstruction_pin}  # D8 output for obstruction status, HIGH for obstructed, LOW for clear
+      number: ${status_obstruction_pin}  # output for obstruction status, HIGH for obstructed, LOW for clear
       mode:
         output: true
     name: "Status obstruction"
@@ -128,7 +137,7 @@ binary_sensor:
   - platform: gpio
     id: "${id_prefix}_dry_contact_open"
     pin:
-      number: ${dry_contact_open_pin}  # D5 dry contact for opening door
+      number: ${dry_contact_open_pin}  # dry contact for opening door
       inverted: true
       mode:
         input: true
@@ -138,15 +147,12 @@ binary_sensor:
     filters:
       - delayed_on_off: 500ms
     on_press:
-      - if:
-          condition:
-            binary_sensor.is_off: ${id_prefix}_dry_contact_close
-          then:
-            - cover.open: ${id_prefix}_garage_door
+      then:
+        script.execute: "${id_prefix}_dry_contact_door_control"
   - platform: gpio
     id: "${id_prefix}_dry_contact_close"
     pin:
-      number: ${dry_contact_close_pin}  # D6 dry contact for closing door
+      number: ${dry_contact_close_pin}  # dry contact for closing door
       inverted: true
       mode:
         input: true
@@ -156,15 +162,12 @@ binary_sensor:
     filters:
       - delayed_on_off: 500ms
     on_press:
-      - if:
-          condition:
-            binary_sensor.is_off: ${id_prefix}_dry_contact_open
-          then:
-            - cover.close: ${id_prefix}_garage_door
+      then:
+        script.execute: "${id_prefix}_dry_contact_door_control"
   - platform: gpio
     id: "${id_prefix}_dry_contact_light"
     pin:
-      number: ${dry_contact_light_pin}  # D3 dry contact for triggering light (no discrete light commands, so toggle only)
+      number: ${dry_contact_light_pin}  # dry contact for triggering light (no discrete light commands, so toggle only)
       inverted: true
       mode:
         input: true
@@ -175,6 +178,32 @@ binary_sensor:
       - delayed_on_off: 500ms
     on_press:
       - light.toggle: ${id_prefix}_light
+
+script:
+  - id: "${id_prefix}_dry_contact_door_control"
+    then:
+      - delay: 0.1s
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_on: ${id_prefix}_dry_contact_close
+              - binary_sensor.is_on: ${id_prefix}_dry_contact_open
+          then:
+            - cover.toggle: ${id_prefix}_garage_door
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_off: ${id_prefix}_dry_contact_close
+              - binary_sensor.is_on: ${id_prefix}_dry_contact_open
+          then:
+            - cover.open: ${id_prefix}_garage_door
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_on: ${id_prefix}_dry_contact_close
+              - binary_sensor.is_off: ${id_prefix}_dry_contact_open
+          then:
+            - cover.close: ${id_prefix}_garage_door
 
 number:
   - platform: ratgdo

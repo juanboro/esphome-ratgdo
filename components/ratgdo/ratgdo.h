@@ -13,7 +13,9 @@
 
 #pragma once
 
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/core/component.h"
+#include "esphome/core/defines.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/preferences.h"
 
@@ -60,6 +62,11 @@ namespace ratgdo {
         observable<float> opening_duration { 0 };
         float start_closing { -1 };
         observable<float> closing_duration { 0 };
+        observable<uint32_t> closing_delay { 0 };
+
+        observable<int16_t> target_distance_measurement { -1 };
+        std::vector<int16_t> distance_measurement { std::vector<int16_t>(30, -1) }; // the length of this vector determines how many in-range readings are required for presence detection to change states
+        observable<int16_t> last_distance_measurement { 0 };
 
         observable<uint16_t> openings { 0 }; // number of times the door has been opened
         observable<uint16_t> paired_total { PAIRED_DEVICES_UNKNOWN };
@@ -70,6 +77,7 @@ namespace ratgdo {
 
         observable<DoorState> door_state { DoorState::UNKNOWN };
         observable<float> door_position { DOOR_POSITION_UNKNOWN };
+        observable<DoorActionDelayed> door_action_delayed { DoorActionDelayed::NO };
 
         unsigned long door_start_moving { 0 };
         float door_start_position { DOOR_POSITION_UNKNOWN };
@@ -82,6 +90,9 @@ namespace ratgdo {
         observable<ButtonState> button_state { ButtonState::UNKNOWN };
         observable<MotionState> motion_state { MotionState::UNKNOWN };
         observable<LearnState> learn_state { LearnState::UNKNOWN };
+        observable<VehicleDetectedState> vehicle_detected_state { VehicleDetectedState::NO };
+        observable<VehicleArrivingState> vehicle_arriving_state { VehicleArrivingState::NO };
+        observable<VehicleLeavingState> vehicle_leaving_state { VehicleLeavingState::NO };
 
         OnceCallbacks<void(DoorState)> on_door_state_;
 
@@ -90,6 +101,12 @@ namespace ratgdo {
         void set_output_gdo_pin(InternalGPIOPin* pin) { this->output_gdo_pin_ = pin; }
         void set_input_gdo_pin(InternalGPIOPin* pin) { this->input_gdo_pin_ = pin; }
         void set_input_obst_pin(InternalGPIOPin* pin) { this->input_obst_pin_ = pin; }
+
+        // dry contact methods
+        void set_dry_contact_open_sensor(esphome::binary_sensor::BinarySensor* dry_contact_open_sensor_);
+        void set_dry_contact_close_sensor(esphome::binary_sensor::BinarySensor* dry_contact_close_sensor_);
+        void set_discrete_open_pin(InternalGPIOPin* pin) { this->protocol_->set_discrete_open_pin(pin); }
+        void set_discrete_close_pin(InternalGPIOPin* pin) { this->protocol_->set_discrete_close_pin(pin); }
 
         Result call_protocol(Args args);
 
@@ -119,9 +136,14 @@ namespace ratgdo {
         void set_door_position(float door_position) { this->door_position = door_position; }
         void set_opening_duration(float duration);
         void set_closing_duration(float duration);
+        void set_closing_delay(uint32_t delay) { this->closing_delay = delay; }
         void schedule_door_position_sync(float update_period = 500);
         void door_position_update();
         void cancel_position_sync_callbacks();
+        void set_target_distance_measurement(int16_t distance);
+        void set_distance_measurement(int16_t distance);
+        void calculate_presence();
+        void presence_change(bool sensor_value);
 
         // light
         void light_toggle();
@@ -150,6 +172,7 @@ namespace ratgdo {
         void subscribe_rolling_code_counter(std::function<void(uint32_t)>&& f);
         void subscribe_opening_duration(std::function<void(float)>&& f);
         void subscribe_closing_duration(std::function<void(float)>&& f);
+        void subscribe_closing_delay(std::function<void(uint32_t)>&& f);
         void subscribe_openings(std::function<void(uint16_t)>&& f);
         void subscribe_paired_devices_total(std::function<void(uint16_t)>&& f);
         void subscribe_paired_remotes(std::function<void(uint16_t)>&& f);
@@ -165,15 +188,23 @@ namespace ratgdo {
         void subscribe_motion_state(std::function<void(MotionState)>&& f);
         void subscribe_sync_failed(std::function<void(bool)>&& f);
         void subscribe_learn_state(std::function<void(LearnState)>&& f);
+        void subscribe_door_action_delayed(std::function<void(DoorActionDelayed)>&& f);
+        void subscribe_distance_measurement(std::function<void(int16_t)>&& f);
+        void subscribe_vehicle_detected_state(std::function<void(VehicleDetectedState)>&& f);
+        void subscribe_vehicle_arriving_state(std::function<void(VehicleArrivingState)>&& f);
+        void subscribe_vehicle_leaving_state(std::function<void(VehicleLeavingState)>&& f);
 
     protected:
         RATGDOStore isr_store_ {};
         protocol::Protocol* protocol_;
-        bool obstruction_from_status_ { false };
+        bool obstruction_sensor_detected_ { false };
+        bool presence_detect_window_active_ { false };
 
         InternalGPIOPin* output_gdo_pin_;
         InternalGPIOPin* input_gdo_pin_;
         InternalGPIOPin* input_obst_pin_;
+        esphome::binary_sensor::BinarySensor* dry_contact_open_sensor_;
+        esphome::binary_sensor::BinarySensor* dry_contact_close_sensor_;
     }; // RATGDOComponent
 
 } // namespace ratgdo
